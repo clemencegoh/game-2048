@@ -5,17 +5,20 @@ import type {
 } from './gameEngine';
 import { GRID_SIZE } from './gameEngine';
 
-export const getAIHint = async (tiles: Tile[], apiKey: string): Promise<Direction> => {
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-  // Convert tiles to 2D array for the prompt
+export const getBoardStateString = (tiles: Tile[]): string => {
   const board: (number | null)[][] = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
   tiles.filter(t => !t.isDeleted).forEach(t => {
     board[t.y][t.x] = t.value;
   });
 
-  const boardString = board.map(row => row.map(cell => cell === null ? 0 : cell).join(", ")).join("\n");
+  return board.map(row => row.map(cell => cell === null ? 0 : cell).join(", ")).join("\n");
+};
+
+export const getAIHint = async (tiles: Tile[], apiKey: string): Promise<Direction> => {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+  const boardString = getBoardStateString(tiles);
 
   const prompt = `
     You are an expert at the game 2048. 

@@ -115,6 +115,15 @@ button.btn:hover {
   box-shadow: 0 10px 15px -3px var(--accent-glow);
 }
 
+button.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  filter: grayscale(0.5);
+  pointer-events: none;
+}
+
 button.btn-outline {
   background: transparent;
   border: 1px solid var(--accent);
