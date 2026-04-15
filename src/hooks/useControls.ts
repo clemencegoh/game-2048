@@ -23,10 +23,16 @@ export const useControls = (onMove: (direction: Direction) => void) => {
     };
 
     const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 1) return; // Ignore multi-touch
       touchStart.current = {
         x: e.touches[0].clientX,
         y: e.touches[0].clientY
       };
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      // Prevent scrolling while swiping on the board
+      e.preventDefault();
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
@@ -50,12 +56,14 @@ export const useControls = (onMove: (direction: Direction) => void) => {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [onMove]);

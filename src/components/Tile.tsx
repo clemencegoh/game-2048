@@ -9,12 +9,9 @@ interface TileProps {
 const Tile: React.FC<TileProps> = ({ tile }) => {
   const { value, x, y, isNew, mergedFrom } = tile;
 
-  const cellSize = 110;
-  const gap = 12;
-  
   const style = {
-    transform: `translate(${x * (cellSize + gap)}px, ${y * (cellSize + gap)}px)`,
-    zIndex: mergedFrom ? 9 : 10,
+    transform: `translate(calc(${x} * (var(--cell-size) + var(--gap-size))), calc(${y} * (var(--cell-size) + var(--gap-size))))`,
+    zIndex: tile.isDeleted ? 8 : (mergedFrom ? 10 : 9),
   };
 
   const classes = [
@@ -25,8 +22,8 @@ const Tile: React.FC<TileProps> = ({ tile }) => {
   ].filter(Boolean).join(' ');
 
   return (
-    <div 
-      className={classes} 
+    <div
+      className={classes}
       style={style}
       role="gridcell"
     >

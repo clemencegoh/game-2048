@@ -29,10 +29,10 @@ export const getEmptyCells = (grid: Grid): { r: number; c: number }[] => {
 };
 
 export const spawnTile = (tiles: Tile[], nextId: number, count: number = 1): { tiles: Tile[], nextId: number } => {
-  const newTiles = [...tiles];
+  const newTiles = tiles.filter(t => !t.isDeleted).map(t => ({ ...t }));
   let currentId = nextId;
   const grid = createEmptyGrid();
-  tiles.filter(t => !t.isDeleted).forEach(tile => {
+  newTiles.forEach(tile => {
     grid[tile.y][tile.x] = tile;
   });
 
@@ -79,7 +79,7 @@ export const moveBoard = (tiles: Tile[], nextId: number, direction: Direction): 
 
   const vector = getVector(direction);
   
-  const animationTiles = tiles.filter(t => !t.isDeleted).map(t => ({ ...t, isNew: false, mergedFrom: undefined }));
+  const animationTiles: Tile[] = tiles.filter(t => !t.isDeleted).map(t => ({ ...t, isNew: false, mergedFrom: undefined }));
   const animationGrid = createEmptyGrid();
   animationTiles.forEach(t => { animationGrid[t.y][t.x] = t; });
 
@@ -123,6 +123,7 @@ export const moveBoard = (tiles: Tile[], nextId: number, direction: Direction): 
           tile.isDeleted = true;
           nextTile.isDeleted = true;
           
+          animationTiles.push(merged);
           finalTiles.push(merged);
           score += merged.value;
           changed = true;
@@ -142,7 +143,7 @@ export const moveBoard = (tiles: Tile[], nextId: number, direction: Direction): 
 
   return { 
     animationTiles, 
-    finalTiles, 
+    finalTiles: finalTiles.filter(t => !t.isDeleted), 
     score, 
     changed, 
     nextId: currentId 

@@ -6,6 +6,11 @@
   --text-dim: #94a3b8;
   --accent: #6366f1;
   --accent-glow: rgba(99, 102, 241, 0.4);
+
+  /* Default sizes for desktop */
+  --grid-size: 31.25rem;
+  --gap-size: 0.4rem;   
+  --cell-size: calc((var(--grid-size) - 10 * var(--gap-size)) / 4);
 }
 
 body {
@@ -23,6 +28,7 @@ body {
 
 #root {
   width: 100%;
-  max-width: 500px;
-  padding: 20px;
+  max-width: var(--grid-size);
+  padding: 1rem;
+  box-sizing: border-box;
 }
