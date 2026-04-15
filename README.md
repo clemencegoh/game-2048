@@ -19,6 +19,7 @@ This serves as a README for humans for my own reflections and notes, with no AI 
 - The User Experience was initially not mobile friendly.
 - Animations weren't part of the initial one-shot response, and had to be added in later.
 - The initial implementation of the game followed a naive approach where the entire game board was re-rendered on every move. This made a smooth animation impossible as every Tile was unmounted and remounted on every move. This was fixed by introducing a state-driven identity for each tile, and using CSS transforms to animate the tiles.
+- Potential edge cases around the AI hint button being clicked multiple times rapidly was not handled, and had to be fixed by introducing a ref to track the state of the button.
 
 ### Future improvements to consider
 - Other themes

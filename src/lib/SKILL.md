@@ -40,3 +40,7 @@ The game engine is pure regarding IDs. The `nextId` counter is passed from the U
 The AI hint system is split between a local heuristic engine and a remote Gemini API.
 - **API Key Management**: To avoid exposing secrets, the Gemini API key is never stored in the codebase or environment files. It is passed explicitly from the UI layer (where it's stored in `sessionStorage`) to the `getAIHint` integration.
 - **Graceful Fallbacks**: The Gemini integration includes multiple fallback layers (parsing, keyword matching) to handle non-structured responses from the LLM.
+- **Rate Limiting & Caching**: To mitigate `429 Too Many Requests` errors from the Gemini API:
+  - **Board Caching**: Use `getBoardStateString` to generate a hash/string of the current board. The UI caches the last board state that requested a hint and prevents redundant API calls if the board hasn't changed.
+  - **Visual Feedback**: The button should be disabled (`disabled={isPending}`) and styled (reduced opacity, grayscale) during the "Thinking" state to prevent rapid double-clicks.
+  - **Error Handling**: Monitor for status code `429` in the API response and display a user-friendly "wait a moment" message instead of a generic failure.
