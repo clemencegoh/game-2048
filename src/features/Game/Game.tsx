@@ -14,7 +14,7 @@ import {
 import { useControls } from '../../hooks/useControls';
 import Tile from '../../components/Tile';
 import { useMutation } from '@tanstack/react-query';
-import { getAIHint } from '../../lib/gemini';
+import { getAIHint, getBoardStateString } from '../../lib/gemini';
 import { Loader2, Settings } from 'lucide-react';
 import ConfigModal from '../../components/ConfigModal';
 
@@ -26,13 +26,25 @@ const Game = () => {
   const [hint, setHint] = useState<Direction | null>(null);
   const [apiKey, setApiKey] = useState(() => sessionStorage.getItem('geminiApiKey') || '');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [lastHintedBoard, setLastHintedBoard] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
   const isMovingRef = useRef(false);
 
   const geminiMutation = useMutation({
     mutationFn: (tiles: TileModel[]) => getAIHint(tiles, apiKey),
-    onSuccess: (direction) => {
+    onSuccess: (direction, variables) => {
       setHint(direction);
+      setLastHintedBoard(getBoardStateString(variables));
+      setAiError(null);
     },
+    onError: (error: any) => {
+      console.error("Gemini Error:", error);
+      if (error?.message?.includes('429') || error?.status === 429) {
+        setAiError("Too many requests. Please wait a moment before trying again.");
+      } else {
+        setAiError("An error occurred while getting AI hint.");
+      }
+    }
   });
 
   const handleMove = useCallback((direction: Direction) => {
@@ -72,8 +84,11 @@ const Game = () => {
   const resetGame = () => {
     setState(initializeBoard());
     setScore(0);
+    setBestScore(0);
     setStatus({ won: false, lost: false });
     setHint(null);
+    setLastHintedBoard(null);
+    setAiError(null);
   };
 
   const showHint = () => {
@@ -87,6 +102,14 @@ const Game = () => {
       setIsConfigOpen(true);
       return;
     }
+
+    const currentBoardString = getBoardStateString(tiles);
+    if (hint && lastHintedBoard === currentBoardString) {
+      // Already have a hint for this board state
+      return;
+    }
+
+    setAiError(null);
     geminiMutation.mutate(tiles);
   };
 
@@ -154,6 +177,12 @@ const Game = () => {
       {hint && (
         <div className="hint-text" aria-live="polite">
           AI Suggests: <span style={{ textTransform: 'capitalize', fontWeight: 'bold', color: 'var(--accent)' }}>{hint}</span>
+        </div>
+      )}
+
+      {aiError && (
+        <div className="hint-text error-text" aria-live="polite" style={{ color: '#ef4444' }}>
+          {aiError}
         </div>
       )}
 
