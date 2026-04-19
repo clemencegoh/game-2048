@@ -3,10 +3,10 @@ import type {
   Direction,
   Tile
 } from './gameEngine';
-import { GRID_SIZE } from './gameEngine';
+import { DEFAULT_GRID_SIZE } from './gameEngine';
 
-export const getBoardStateString = (tiles: Tile[]): string => {
-  const board: (number | null)[][] = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
+export const getBoardStateString = (tiles: Tile[], size: number = DEFAULT_GRID_SIZE): string => {
+  const board: (number | null)[][] = Array(size).fill(null).map(() => Array(size).fill(null));
   tiles.filter(t => !t.isDeleted).forEach(t => {
     board[t.y][t.x] = t.value;
   });
@@ -14,15 +14,15 @@ export const getBoardStateString = (tiles: Tile[]): string => {
   return board.map(row => row.map(cell => cell === null ? 0 : cell).join(", ")).join("\n");
 };
 
-export const getAIHint = async (tiles: Tile[], apiKey: string): Promise<Direction> => {
+export const getAIHint = async (tiles: Tile[], apiKey: string, size: number = DEFAULT_GRID_SIZE): Promise<Direction> => {
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-  const boardString = getBoardStateString(tiles);
+  const boardString = getBoardStateString(tiles, size);
 
   const prompt = `
     You are an expert at the game 2048. 
-    The current board state is represented by a 4x4 grid of numbers (0 represents an empty cell):
+    The current board state is represented by a ${size}x${size} grid of numbers (0 represents an empty cell):
     ${boardString}
 
     Based on this board state, what is the single best move to make? 

@@ -8,9 +8,11 @@
   --accent-glow: rgba(99, 102, 241, 0.4);
 
   /* Default sizes for desktop */
-  --grid-size: 31.25rem;
-  --gap-size: 0.4rem;   
-  --cell-size: calc((var(--grid-size) - 10 * var(--gap-size)) / 4);
+  --grid-cols: 4;
+  --gap-size: 0.6rem;   
+  --cell-size: calc(min(58vw, 58vh) / var(--grid-cols));
+  --grid-size: calc(var(--grid-cols) * var(--cell-size) + (var(--grid-cols) + 1) * var(--gap-size));
+  --tile-font-size: calc(var(--cell-size) * 0.45);
 }
 
 body {

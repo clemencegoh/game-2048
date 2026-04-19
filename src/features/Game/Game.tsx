@@ -9,7 +9,8 @@ import {
   moveBoard,
   spawnTile,
   isGameOver,
-  getBestMove
+  getBestMove,
+  DEFAULT_GRID_SIZE
 } from '../../lib/gameEngine';
 import { useControls } from '../../hooks/useControls';
 import Tile from '../../components/Tile';
@@ -19,7 +20,8 @@ import { Loader2, Settings } from 'lucide-react';
 import ConfigModal from '../../components/ConfigModal';
 
 const Game = () => {
-  const [{ tiles, nextId }, setState] = useState<{ tiles: TileModel[], nextId: number }>(() => initializeBoard());
+  const [gridSize, setGridSize] = useState(DEFAULT_GRID_SIZE);
+  const [{ tiles, nextId }, setState] = useState<{ tiles: TileModel[], nextId: number }>(() => initializeBoard(DEFAULT_GRID_SIZE));
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(() => Number(localStorage.getItem('bestScore')) || 0);
   const [status, setStatus] = useState<{ won: boolean; lost: boolean }>({ won: false, lost: false });
@@ -32,10 +34,10 @@ const Game = () => {
   const isMovingRef = useRef(false);
 
   const geminiMutation = useMutation({
-    mutationFn: (tiles: TileModel[]) => getAIHint(tiles, apiKey),
+    mutationFn: (tiles: TileModel[]) => getAIHint(tiles, apiKey, gridSize),
     onSuccess: (direction, variables) => {
       setHint(direction);
-      setLastHintedBoard(getBoardStateString(variables));
+      setLastHintedBoard(getBoardStateString(variables, gridSize));
       setAiError(null);
     },
     onError: (error: any) => {
@@ -51,7 +53,7 @@ const Game = () => {
   const handleMove = useCallback((direction: Direction) => {
     if (status.won || status.lost || isMovingRef.current) return;
 
-    const { animationTiles, finalTiles, score: moveScore, changed, nextId: newNextId } = moveBoard(tiles, nextId, direction);
+    const { animationTiles, finalTiles, score: moveScore, changed, nextId: newNextId } = moveBoard(tiles, nextId, direction, gridSize);
 
     if (changed) {
       // Save current state before move
@@ -65,9 +67,9 @@ const Game = () => {
       // Wait for animation
       setTimeout(() => {
         setState(() => {
-          const { tiles: boardWithNewTile, nextId: spawnedNextId } = spawnTile(finalTiles, newNextId);
+          const { tiles: boardWithNewTile, nextId: spawnedNextId } = spawnTile(finalTiles, newNextId, gridSize);
 
-          const newStatus = isGameOver(boardWithNewTile);
+          const newStatus = isGameOver(boardWithNewTile, gridSize);
           setStatus(newStatus);
           isMovingRef.current = false;
           return { tiles: boardWithNewTile, nextId: spawnedNextId };
@@ -97,7 +99,7 @@ const Game = () => {
   }, [score, bestScore]);
 
   const resetGame = () => {
-    setState(initializeBoard());
+    setState(initializeBoard(gridSize));
     setScore(0);
     setBestScore(0);
     setStatus({ won: false, lost: false });
@@ -108,7 +110,7 @@ const Game = () => {
   };
 
   const showHint = () => {
-    const bestMove = getBestMove(tiles);
+    const bestMove = getBestMove(tiles, gridSize);
     setHint(bestMove);
   };
 
@@ -119,7 +121,7 @@ const Game = () => {
       return;
     }
 
-    const currentBoardString = getBoardStateString(tiles);
+    const currentBoardString = getBoardStateString(tiles, gridSize);
     if (hint && lastHintedBoard === currentBoardString) {
       // Already have a hint for this board state
       return;
@@ -132,6 +134,19 @@ const Game = () => {
   const handleSaveApiKey = (newKey: string) => {
     setApiKey(newKey);
     sessionStorage.setItem('geminiApiKey', newKey);
+  };
+
+  const handleGridSizeChange = (newSize: number) => {
+    if (newSize === gridSize) return;
+    setGridSize(newSize);
+    // Grid size change requires immediate reset
+    setState(initializeBoard(newSize));
+    setScore(0);
+    setStatus({ won: false, lost: false });
+    setHistory([]);
+    setHint(null);
+    setLastHintedBoard(null);
+    setAiError(null);
   };
 
   const renderTiles = () => {
@@ -163,6 +178,25 @@ const Game = () => {
             <Settings size={20} />
           </button>
         </div>
+      </div>
+
+      <div className="grid-size-selector" style={{ visibility: 'hidden', height: 0 }}>
+        {[4, 5, 6].map(size => (
+          <button
+            key={size}
+            className={`btn btn-outline btn-sm ${gridSize === size ? 'active' : ''}`}
+            onClick={() => handleGridSizeChange(size)}
+            style={{
+              opacity: gridSize === size ? 1 : 0.6,
+              background: gridSize === size ? 'var(--accent)' : 'transparent',
+              borderColor: gridSize === size ? 'var(--accent)' : 'rgba(255,255,255,0.2)',
+              fontSize: '0.8rem',
+              padding: '4px 12px'
+            }}
+          >
+            {size}x{size}
+          </button>
+        ))}
       </div>
 
       <div className="controls">
@@ -215,8 +249,9 @@ const Game = () => {
         role="grid"
         aria-label="2048 game board"
         aria-readonly="true"
+        style={{ '--grid-cols': gridSize } as React.CSSProperties}
       >
-        {[...Array(16)].map((_, i) => (
+        {[...Array(gridSize * gridSize)].map((_, i) => (
           <div
             key={i}
             className="grid-cell"
