@@ -86,7 +86,7 @@
   justify-content: space-between;
 }
 
-.controls-2 {
+.controls-1, .controls-2 {
   display: flex;
   gap: 15px;
 }
