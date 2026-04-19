@@ -17,6 +17,7 @@ This project is a premium implementation of the classic 2048 puzzle game, built 
   - **Gemini AI Engine**: Leverages the `gemini-2.0-flash` model for intelligent, context-aware move suggestions.
 - **Session-Based API Configuration**: Users manage their own Gemini API key through an interactive UI form, with persistence in `sessionStorage` for secure, per-session usage.
 - **Persistence**: Automatically saves the highest score to local storage.
+- **Undo Support**: Allows players to revert their last 20 moves, including board state and score restoration.
 
 ## Project Structure
 
@@ -33,4 +34,5 @@ This project is a premium implementation of the classic 2048 puzzle game, built 
 1. **State-Driven Identity**: Each tile has a stable `id` managed in the React state. Engine functions are pure and return updated `nextId` values to preserve tile identities across frames.
 2. **Two-Phase Move Lifecycle**: Moves are executed in two steps (Sliding Phase → Merge/Spawn Phase) to ensure animations complete before state cleanup.
 3. **Decoupled Logic**: Game mechanics and AI are decoupled from the UI, allowing for comprehensive unit testing of the state transition logic.
-4. **Hardware-Accelerated Motion**: Uses CSS `transform: translate()` and `transition` for 60fps movement.
+4. **History-Based Restoration**: State snapshots are stored in a bounded stack, enabling "Undo" functionality that maintains score consistency and tile positions.
+5. **Hardware-Accelerated Motion**: Uses CSS `transform: translate()` and `transition` for 60fps movement.
