@@ -22,6 +22,12 @@ Movement is calculated by `moveBoard` which returns two distinct sets of tiles:
 ### Stable ID Management
 The game engine is pure regarding IDs. The `nextId` counter is passed from the UI to engine functions (`moveBoard`, `spawnTile`) and returned back. This prevents ID collisions and ensures AI simulations (heuristic/Gemini) don't consume the main state's ID sequence.
 
+### Undo Mechanism
+The undo feature maintains a history stack of previous board states.
+- **Snapshot Selection**: Snapshots are taken *before* `moveBoard` is called. Each snapshot includes the `tiles` array, the current `score`, and the `nextId`.
+- **Bounded History**: The history is limited to the last 20 moves to optimize memory usage while providing a generous buffer for player corrections.
+- **State Restoration**: Restoration reverts the grid, score, and ID sequence precisely to the captured snapshot, ensuring the game's internal consistency is maintained.
+
 ## Known Gotchas
 
 > [!IMPORTANT]
@@ -35,6 +41,9 @@ The game engine is pure regarding IDs. The `nextId` counter is passed from the U
 
 > [!NOTE]
 > **Endgame Detection**: The game is lost only if *no* moves (Up, Down, Left, or Right) result in a `changed: true` flag and there are no empty cells. Simply checking if the board is full is insufficient.
+
+> [!CAUTION]
+> **Undo Concurrency**: Similar to movement, the `handleUndo` action must be guarded by `isMovingRef`. Triggering an undo while a move animation is in progress can lead to a fragmented state where the animation continues with old tile identities, causing UI glitches.
 
 ## AI Integration
 The AI hint system is split between a local heuristic engine and a remote Gemini API.

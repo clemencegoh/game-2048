@@ -23,6 +23,7 @@ const Game = () => {
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(() => Number(localStorage.getItem('bestScore')) || 0);
   const [status, setStatus] = useState<{ won: boolean; lost: boolean }>({ won: false, lost: false });
+  const [history, setHistory] = useState<{ tiles: TileModel[], score: number, nextId: number }[]>([]);
   const [hint, setHint] = useState<Direction | null>(null);
   const [apiKey, setApiKey] = useState(() => sessionStorage.getItem('geminiApiKey') || '');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
@@ -53,6 +54,9 @@ const Game = () => {
     const { animationTiles, finalTiles, score: moveScore, changed, nextId: newNextId } = moveBoard(tiles, nextId, direction);
 
     if (changed) {
+      // Save current state before move
+      setHistory(prev => [...prev, { tiles, score, nextId }].slice(-20)); // Limit history to last 20 moves
+
       isMovingRef.current = true;
       setState(s => ({ ...s, tiles: animationTiles }));
       setScore(s => s + moveScore);
@@ -70,7 +74,18 @@ const Game = () => {
         });
       }, 100);
     }
-  }, [tiles, nextId, status]);
+  }, [tiles, nextId, score, status]);
+
+  const handleUndo = useCallback(() => {
+    if (history.length === 0 || isMovingRef.current) return;
+
+    const lastState = history[history.length - 1];
+    setHistory(prev => prev.slice(0, -1));
+    setState({ tiles: lastState.tiles, nextId: lastState.nextId });
+    setScore(lastState.score);
+    setStatus({ won: false, lost: false });
+    setHint(null);
+  }, [history]);
 
   useControls(handleMove);
 
@@ -86,6 +101,7 @@ const Game = () => {
     setScore(0);
     setBestScore(0);
     setStatus({ won: false, lost: false });
+    setHistory([]);
     setHint(null);
     setLastHintedBoard(null);
     setAiError(null);
@@ -150,8 +166,16 @@ const Game = () => {
       </div>
 
       <div className="controls">
-        <div>
+        <div className="controls-1">
           <button className="btn btn-outline" onClick={resetGame} aria-label="Start a new game">New Game</button>
+          <button
+            className="btn btn-outline"
+            onClick={handleUndo}
+            disabled={history.length === 0 || isMovingRef.current}
+            aria-label="Undo last move"
+          >
+            Undo
+          </button>
         </div>
         <div className='controls-2'>
           <button className="btn" onClick={showHint} aria-label="Get a movement suggestion from AI">Hint</button>
