@@ -3,7 +3,7 @@ import type { Tile } from '../gameEngine';
 import { 
   moveBoard, 
   isGameOver,
-  GRID_SIZE
+  DEFAULT_GRID_SIZE as GRID_SIZE
 } from '../gameEngine';
 
 const createTilesFromBoard = (board: (number | null)[][]): Tile[] => {
@@ -42,7 +42,7 @@ describe('gameEngine', () => {
         [null, null, null, 2]
       ];
       const tiles = createTilesFromBoard(initialBoard);
-      const { finalTiles: newTiles, changed } = moveBoard(tiles, 100, 'left');
+      const { finalTiles: newTiles, changed } = moveBoard(tiles, 100, 'left', 4);
       
       expect(changed).toBe(true);
       const resultBoard = getBoardFromTiles(newTiles);
@@ -60,7 +60,7 @@ describe('gameEngine', () => {
         [null, null, null, 2]
       ];
       const tiles = createTilesFromBoard(initialBoard);
-      const { finalTiles: newTiles, changed } = moveBoard(tiles, 100, 'right');
+      const { finalTiles: newTiles, changed } = moveBoard(tiles, 100, 'right', 4);
       
       expect(changed).toBe(true);
       const resultBoard = getBoardFromTiles(newTiles);
@@ -78,7 +78,7 @@ describe('gameEngine', () => {
         [null, null, null, 2]
       ];
       const tiles = createTilesFromBoard(initialBoard);
-      const { finalTiles: newTiles, changed } = moveBoard(tiles, 100, 'up');
+      const { finalTiles: newTiles, changed } = moveBoard(tiles, 100, 'up', 4);
       
       expect(changed).toBe(true);
       const resultBoard = getBoardFromTiles(newTiles);
@@ -98,7 +98,7 @@ describe('gameEngine', () => {
         [null, null, null, null]
       ];
       const tiles = createTilesFromBoard(initialBoard);
-      const { finalTiles: newTiles, changed } = moveBoard(tiles, 100, 'down');
+      const { finalTiles: newTiles, changed } = moveBoard(tiles, 100, 'down', 4);
       
       expect(changed).toBe(true);
       const resultBoard = getBoardFromTiles(newTiles);
@@ -118,7 +118,7 @@ describe('gameEngine', () => {
         [4, 2, 4, 2]
       ];
       const tiles = createTilesFromBoard(initialBoard);
-      const { changed } = moveBoard(tiles, 100, 'left');
+      const { changed } = moveBoard(tiles, 100, 'left', 4);
       expect(changed).toBe(false);
     });
   });
@@ -132,7 +132,7 @@ describe('gameEngine', () => {
         [null, null, null, null]
       ];
       const tiles = createTilesFromBoard(initialBoard);
-      const status = isGameOver(tiles);
+      const status = isGameOver(tiles, 4);
       expect(status.won).toBe(true);
     });
 
@@ -144,7 +144,7 @@ describe('gameEngine', () => {
         [4, 2, 4, 2]
       ];
       const tiles = createTilesFromBoard(initialBoard);
-      const status = isGameOver(tiles);
+      const status = isGameOver(tiles, 4);
       expect(status.lost).toBe(true);
     });
   });
